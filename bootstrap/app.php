@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\DetectHttpsProxy;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\RegistrationEnabled;
 use App\Http\Middleware\TrackVisitor;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // The site runs behind Nginx (and maybe a reverse proxy / tunnel in front of Proxmox).
         $middleware->trustProxies(at: '*');
         $middleware->append(DetectHttpsProxy::class); // all routes, incl. the admin panel
+        $middleware->append(NoIndex::class); // keep the site out of search engines
 
         $middleware->web(append: [
             EnsureUserIsActive::class,
