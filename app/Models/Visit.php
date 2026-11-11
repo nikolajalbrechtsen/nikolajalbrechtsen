@@ -21,7 +21,7 @@ class Visit extends Model
         ];
     }
 
-    /** "🇩🇰 Copenhagen, Capital Region, Denmark" */
+    /** "Copenhagen, Capital Region, Denmark" */
     public static function formatLocation(?string $country, ?string $region = null, ?string $city = null): ?string
     {
         $country = strtoupper((string) $country);
@@ -31,12 +31,9 @@ class Visit extends Model
             return $label ?? (($city || $region) ? implode(', ', array_filter([$city, $region])) : null);
         }
 
-        $flag = preg_match('/^[A-Z]{2}$/', $country)
-            ? mb_chr(0x1F1E6 + ord($country[0]) - 65).mb_chr(0x1F1E6 + ord($country[1]) - 65)
-            : '';
         $name = class_exists(Locale::class) ? (Locale::getDisplayRegion('-'.$country, 'en') ?: $country) : $country;
 
-        return trim($flag.' '.implode(', ', array_unique(array_filter([$city, $region, $name]))));
+        return implode(', ', array_unique(array_filter([$city, $region, $name])));
     }
 
     /** Very small user-agent summary: "Chrome on Windows". */
