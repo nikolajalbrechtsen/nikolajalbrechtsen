@@ -3,6 +3,8 @@
     $links = array_filter([
         $user->can('manage_pages') ? ['New page', 'Build a page with drag-and-drop blocks', \App\Filament\Resources\Pages\PageResource::getUrl('create'), 'heroicon-o-document-plus', false] : null,
         $user->can('manage_posts') ? ['New blog post', 'Write and schedule a post', \App\Filament\Resources\Posts\PostResource::getUrl('create'), 'heroicon-o-pencil-square', false] : null,
+        $user->can('manage_media') ? ['Media library', 'Upload images and files', \App\Filament\Resources\Media\MediaResource::getUrl(), 'heroicon-o-photo', false] : null,
+        $user->can('manage_calendar') ? ['Calendar', 'Plan events and posts', \App\Filament\Pages\Calendar::getUrl(), 'heroicon-o-calendar-days', false] : null,
         $user->can('manage_settings') ? ['Site settings', 'Name, logo, colors, login options', \App\Filament\Pages\Settings::getUrl(), 'heroicon-o-cog-6-tooth', false] : null,
         $user->can('manage_files') ? ['File editor', 'Edit any file of the website', \App\Filament\Pages\FileEditor::getUrl(), 'heroicon-o-code-bracket-square', false] : null,
         $user->can('use_code_editor') ? ['VS Code', 'Full VS Code in your browser', url('/code/'), 'heroicon-o-command-line', true] : null,

@@ -104,4 +104,7 @@ systemctl reload "php*-fpm" 2>/dev/null || systemctl reload php8.4-fpm 2>/dev/nu
 artisan up >/dev/null
 trap - EXIT
 
+# Keep VS Code (code-server) config in sync — only restarts it if its config changed.
+[[ -f "$APP_DIR/deploy/configure-code-server.sh" ]] && bash "$APP_DIR/deploy/configure-code-server.sh" || warn "Could not configure code-server"
+
 ok "Website updated in $(( $(date +%s) - START ))s — now at $(as_app git log -1 --format='%h %s')"

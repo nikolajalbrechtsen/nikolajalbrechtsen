@@ -227,34 +227,8 @@ step "Installing code-server (VS Code in the browser)…"
 if ! command -v code-server >/dev/null; then
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --method=standalone --prefix=/usr/local >/dev/null
 fi
-mkdir -p "$APP_HOME/.local/share/code-server/User"
-cat > "$APP_HOME/.local/share/code-server/User/settings.json" <<'JSON'
-{
-    "workbench.colorTheme": "Default Dark Modern",
-    "telemetry.telemetryLevel": "off",
-    "update.mode": "none",
-    "editor.fontSize": 14,
-    "files.exclude": { "**/node_modules": true, "**/vendor": true },
-    "security.workspace.trust.enabled": false
-}
-JSON
-chown -R "$APP_USER:$APP_USER" "$APP_HOME/.local"
-
-cat > /etc/systemd/system/code-server-site.service <<UNIT
-[Unit]
-Description=code-server (VS Code) for the website
-After=network.target
-
-[Service]
-User=${APP_USER}
-Environment=HOME=${APP_HOME}
-WorkingDirectory=${APP_DIR}
-ExecStart=/usr/local/bin/code-server --bind-addr 127.0.0.1:${CODE_PORT} --auth none --disable-telemetry --disable-update-check ${APP_DIR}
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-UNIT
+# Service, settings, terminal (bash), `sudo update` — shared with `update`.
+bash "$APP_DIR/deploy/configure-code-server.sh"
 for ext in bmewburn.vscode-intelephense-client bradlc.vscode-tailwindcss onecentlab.laravel-blade; do
     as_app /usr/local/bin/code-server --install-extension "$ext" >/dev/null 2>&1 || warn "Could not install VS Code extension $ext (optional)"
 done

@@ -32,7 +32,7 @@ class ContactMessageResource extends Resource
 
     protected static ?string $navigationLabel = 'Messages';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function canAccess(): bool
     {

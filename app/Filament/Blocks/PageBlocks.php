@@ -135,6 +135,16 @@ class PageBlocks
                     ]),
                 ]),
 
+            Block::make('upcoming_events')
+                ->label('Upcoming events')
+                ->icon('heroicon-o-calendar-days')
+                ->schema([
+                    TextInput::make('heading')->default('Upcoming events'),
+                    TextInput::make('count')->numeric()->default(5)->minValue(1)->maxValue(20),
+                    Textarea::make('empty_text')->rows(1)->default('No upcoming events right now.')
+                        ->helperText('Shown when there are no public events. Events come from Admin → Calendar ("Show on the website").'),
+                ]),
+
             Block::make('latest_posts')
                 ->label('Latest blog posts')
                 ->icon('heroicon-o-newspaper')

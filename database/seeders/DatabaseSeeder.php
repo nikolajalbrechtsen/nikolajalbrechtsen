@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         'manage_pages' => 'Create and edit pages',
         'manage_posts' => 'Create and edit blog posts',
         'manage_messages' => 'Read contact messages',
+        'manage_media' => 'Upload and manage media',
+        'manage_calendar' => 'Manage calendar events',
         'manage_users' => 'Manage users',
         'manage_roles' => 'Manage roles & permissions',
         'manage_settings' => 'Change site settings',
@@ -34,22 +36,30 @@ class DatabaseSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
+        $newPermissions = [];
         foreach (array_keys(self::PERMISSIONS) as $name) {
-            Permission::findOrCreate($name, 'web');
+            if (! Permission::where('name', $name)->where('guard_name', 'web')->exists()) {
+                Permission::create(['name' => $name, 'guard_name' => 'web']);
+                $newPermissions[] = $name;
+            }
         }
 
-        // Default roles. Permissions are only set the first time, so changes you
-        // make in Admin → Roles & permissions are never overwritten by `update`.
+        // Default roles. Permissions are only set the first time (or when a brand-new
+        // permission is added by an update), so changes you make in
+        // Admin → Roles & permissions are never overwritten by `update`.
         $defaults = [
             'super_admin' => [], // gets everything through Gate::before
             'admin' => array_diff(array_keys(self::PERMISSIONS), ['manage_files', 'use_code_editor']),
-            'editor' => ['access_admin', 'manage_pages', 'manage_posts', 'manage_messages'],
+            'editor' => ['access_admin', 'manage_pages', 'manage_posts', 'manage_messages', 'manage_media', 'manage_calendar'],
             'member' => [],
         ];
 
         foreach ($defaults as $name => $permissions) {
-            if (! Role::where('name', $name)->where('guard_name', 'web')->exists()) {
+            $role = Role::where('name', $name)->where('guard_name', 'web')->first();
+            if (! $role) {
                 Role::create(['name' => $name, 'guard_name' => 'web'])->syncPermissions($permissions);
+            } elseif ($added = array_intersect($permissions, $newPermissions)) {
+                $role->givePermissionTo($added);
             }
         }
 
