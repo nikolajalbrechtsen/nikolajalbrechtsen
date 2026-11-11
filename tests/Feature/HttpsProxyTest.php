@@ -44,6 +44,26 @@ class HttpsProxyTest extends TestCase
             ->assertSee('http://192.168.1.50/login', false);
     }
 
+    public function test_http_via_cloudflare_redirects_to_https(): void
+    {
+        $this->withHeaders(['CF-Visitor' => '{"scheme":"http"}'])
+            ->get('http://nikolajalbrechtsen.com/blog?tag=news')
+            ->assertRedirect('https://nikolajalbrechtsen.com/blog?tag=news')
+            ->assertStatus(301);
+    }
+
+    public function test_www_redirects_to_main_domain(): void
+    {
+        $this->withHeaders(['CF-Visitor' => '{"scheme":"https"}'])
+            ->get('http://www.nikolajalbrechtsen.com/about')
+            ->assertRedirect('https://nikolajalbrechtsen.com/about');
+    }
+
+    public function test_lan_ip_is_never_redirected(): void
+    {
+        $this->get('http://192.168.1.50/')->assertOk();
+    }
+
     public function test_real_visitor_ip_is_used_behind_the_tunnel(): void
     {
         // cloudflared connects from 127.0.0.1 and passes the visitor IP along
