@@ -1,11 +1,11 @@
 name: Sync About to README
 
 # Copies the About page from the live website into README.md.
-# Runs every 15 minutes, and can be started by hand: Actions → "Sync About to README" → Run workflow.
+# Runs every hour (private repos get 2000 free Action minutes/month), and can be started by hand: Actions → "Sync About to README" → Run workflow.
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:
