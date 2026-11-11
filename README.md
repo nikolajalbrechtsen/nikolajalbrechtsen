@@ -89,10 +89,16 @@ Password reset, email verification and contact-form notifications need SMTP. Edi
 in VS Code (`MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`), then
 click **Clear caches**. Until then, mails are written to `storage/logs`.
 
-### HTTPS / domain
+### HTTPS / domain (Cloudflare Tunnel)
 
-Point a reverse proxy (Nginx Proxy Manager, Caddy, Cloudflare Tunnel…) at the container's port 80 and set
-`APP_URL=https://your-domain` in `.env`, then **Clear caches**.
+No router port-forwarding needed; Cloudflare provides the certificate.
+
+1. Cloudflare dashboard → **Zero Trust → Networks → Tunnels → Create a tunnel** → *Cloudflared* → name it → copy the **token**.
+2. **Public hostname:** your domain → Service **HTTP** → `localhost:80` (add `www` the same way if you want).
+3. In the container: `bash /var/www/site/deploy/cloudflare-tunnel.sh` → enter the domain and paste the token.
+4. Cloudflare → SSL/TLS → **Always Use HTTPS: on**. Speed → **Rocket Loader: off** (it breaks the admin panel).
+
+Opening the site on your LAN via `http://<container-ip>` keeps working.
 
 ---
 

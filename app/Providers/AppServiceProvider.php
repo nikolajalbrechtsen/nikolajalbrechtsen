@@ -22,8 +22,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Behind a reverse proxy (Nginx Proxy Manager, Cloudflare tunnel...) keep URLs on https.
-        if (str_starts_with((string) config('app.url'), 'https://')) {
+        // Queue jobs / emails (no web request) use the public https address.
+        // Web requests are handled per request by the DetectHttpsProxy middleware.
+        if ($this->app->runningInConsole() && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 
