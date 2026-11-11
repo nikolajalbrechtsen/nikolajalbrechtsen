@@ -16,6 +16,7 @@
  *      Zone · Zone · Read
  *      Zone · DNS · Edit
  *      Zone · Zone Settings · Edit
+ *      Zone · Transform Rules · Edit   (optional: visitor city/region headers)
  *  The token is only used for this run and is not saved.
  * =============================================================================
  */
@@ -177,6 +178,15 @@ cf('PATCH', "/zones/{$zoneId}/settings/always_use_https", ['value' => 'on']);
 out('Always Use HTTPS: on');
 if (cf('PATCH', "/zones/{$zoneId}/settings/rocket_loader", ['value' => 'off'], fatal: false)['success'] ?? false) {
     out('Rocket Loader: off');
+}
+// Visitor city/region for Admin → Visitors (country is sent by default).
+if (cf('PATCH', "/zones/{$zoneId}/managed_headers", [
+    'managed_request_headers' => [['id' => 'add_visitor_location_headers', 'enabled' => true]],
+    'managed_response_headers' => [],
+], fatal: false)['success'] ?? false) {
+    out('Visitor location headers: on');
+} else {
+    out('Could not turn on visitor location headers (needs Zone · Transform Rules · Edit) — Admin → Visitors will show country only.', '!', '1;33');
 }
 
 // -----------------------------------------------------------------------------

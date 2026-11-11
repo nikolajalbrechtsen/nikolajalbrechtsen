@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         'manage_pages' => 'Create and edit pages',
         'manage_posts' => 'Create and edit blog posts',
         'manage_messages' => 'Read contact messages',
+        'view_visitors' => 'See visitors (IP addresses & location)',
         'manage_media' => 'Upload and manage media',
         'manage_calendar' => 'Manage calendar events',
         'manage_users' => 'Manage users',

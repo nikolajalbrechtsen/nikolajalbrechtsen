@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Visitors\Pages\ListVisitors;
+use App\Filament\Resources\Visitors\VisitorResource;
 use App\Filament\Widgets\VisitorStats;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -59,6 +61,44 @@ class VisitorTrackingTest extends TestCase
         $this->visit('/blog', '2001:db8:abcd:99::1'); // different network
 
         $this->assertSame(2, DB::table('visits')->count());
+    }
+
+    public function test_ip_and_location_are_stored(): void
+    {
+        $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+            ->withHeaders([
+                'CF-Connecting-IP' => '203.0.113.7',
+                'CF-IPCountry' => 'DK',
+                'CF-IPCity' => 'Copenhagen',
+                'CF-Region' => 'Capital Region',
+                'Referer' => 'https://www.google.com/',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0) Chrome/130',
+            ])->get('/about');
+
+        $visit = DB::table('visits')->first();
+        $this->assertSame('203.0.113.7', $visit->ip);
+        $this->assertSame('DK', $visit->country);
+        $this->assertSame('Copenhagen', $visit->city);
+        $this->assertSame('Capital Region', $visit->region);
+        $this->assertSame('https://www.google.com/', $visit->referrer);
+        $this->assertSame('/about', $visit->last_path);
+    }
+
+    public function test_visitors_page_lists_each_ip_once(): void
+    {
+        $this->visit('/', '10.0.0.1');
+        $this->visit('/about', '10.0.0.1');
+        $this->visit('/', '10.0.0.2');
+
+        $this->actingAs(User::role('super_admin')->first());
+
+        $this->get(VisitorResource::getUrl())
+            ->assertOk()
+            ->assertSee('10.0.0.1')
+            ->assertSee('10.0.0.2');
+
+        Livewire::test(ListVisitors::class)->assertCountTableRecords(2);
+        Livewire::test(VisitorStats::class)->assertSee(VisitorResource::getUrl(), false);
     }
 
     public function test_bots_admin_and_errors_are_ignored(): void

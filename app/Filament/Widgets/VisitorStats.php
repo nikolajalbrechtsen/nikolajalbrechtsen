@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\Visitors\VisitorResource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -41,7 +42,8 @@ class VisitorStats extends StatsOverviewWidget
                 ->description('Unique by IP, all time')
                 ->descriptionIcon(Heroicon::OutlinedUsers)
                 ->chart($chart)
-                ->color('primary'),
+                ->color('primary')
+                ->url(VisitorResource::canAccess() ? VisitorResource::getUrl() : null),
             Stat::make('Visitors today', number_format($todayCount))
                 ->description(match (true) {
                     $diff > 0 => "{$diff} more than yesterday",
