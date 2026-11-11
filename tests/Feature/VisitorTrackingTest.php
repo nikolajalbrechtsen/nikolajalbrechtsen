@@ -37,6 +37,30 @@ class VisitorTrackingTest extends TestCase
         $this->assertSame(0, DB::table('visits')->where('ip_hash', 'like', '10.0.0%')->count());
     }
 
+    public function test_cloudflare_client_ip_is_used_even_if_forwarded_for_changes(): void
+    {
+        foreach (['/', '/about', '/blog'] as $i => $url) {
+            $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+                ->withHeaders([
+                    'CF-Connecting-IP' => '203.0.113.7',
+                    'X-Forwarded-For' => "203.0.113.7, 172.68.0.{$i}",
+                    'User-Agent' => 'Mozilla/5.0 Chrome/130',
+                ])->get($url);
+        }
+
+        $this->assertSame(1, DB::table('visits')->count());
+        $this->assertSame(3, (int) DB::table('visits')->value('hits'));
+    }
+
+    public function test_rotating_ipv6_privacy_addresses_count_as_one_visitor(): void
+    {
+        $this->visit('/', '2001:db8:abcd:12::1');
+        $this->visit('/about', '2001:db8:abcd:12:a1b2:c3d4:e5f6:7788');
+        $this->visit('/blog', '2001:db8:abcd:99::1'); // different network
+
+        $this->assertSame(2, DB::table('visits')->count());
+    }
+
     public function test_bots_admin_and_errors_are_ignored(): void
     {
         $this->visit('/', '10.0.0.3', 'Googlebot/2.1');
