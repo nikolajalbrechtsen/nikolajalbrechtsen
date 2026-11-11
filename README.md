@@ -22,6 +22,8 @@
 <!-- ABOUT:START -->
 <!-- This section is updated automatically from https://nikolajalbrechtsen.com/about — edit it in the admin panel, not here. -->
 
-*Syncing from [nikolajalbrechtsen.com/about](https://nikolajalbrechtsen.com/about)…*
+## About me
+
+Her kommer til at stå lidt om mig i fremtiden når jeg lige får skrevet noget...
 
 <!-- ABOUT:END -->
