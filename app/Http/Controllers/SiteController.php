@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Page;
 use App\Models\Post;
+use App\Support\PageMarkdown;
 use Illuminate\Http\Request;
 
 class SiteController extends Controller
@@ -28,6 +29,22 @@ class SiteController extends Controller
         }
 
         return $this->renderPage($page);
+    }
+
+    /**
+     * Markdown version of a public page, e.g. /about.md (used by the GitHub README).
+     */
+    public function pageMarkdown(string $slug)
+    {
+        $page = Page::published()->where('slug', $slug)->where('visibility', 'public')->firstOrFail();
+
+        $markdown = (new PageMarkdown(rtrim(url('/'), '/')))->render($page);
+
+        return response($markdown, 200, [
+            'Content-Type' => 'text/markdown; charset=UTF-8',
+            'Cache-Control' => 'no-cache',
+            'Last-Modified' => $page->updated_at->toRfc7231String(),
+        ]);
     }
 
     protected function renderPage(Page $page)

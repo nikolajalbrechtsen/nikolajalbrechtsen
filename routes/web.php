@@ -63,6 +63,11 @@ require __DIR__.'/auth.php';
 |--------------------------------------------------------------------------
 */
 
+// Markdown version of a public page, e.g. /about.md — the GitHub README syncs from it.
+Route::get('/{slug}.md', [SiteController::class, 'pageMarkdown'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('page.markdown');
+
 Route::get('/{slug}', [SiteController::class, 'page'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('page.show');

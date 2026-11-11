@@ -1,125 +1,67 @@
-# Website
+<div align="center">
 
-Laravel 12 website with a custom admin panel (Filament 5), user accounts, social login,
-an online VS Code editor and one-command deploys to a Proxmox container.
+# nikolajalbrechtsen.com
 
-| URL | What |
+**My personal website — portfolio, blog and home-lab playground.**
+
+[🌐 Visit the website](https://nikolajalbrechtsen.com) · [📝 Blog](https://nikolajalbrechtsen.com/blog) · [✉️ Contact](https://nikolajalbrechtsen.com/contact)
+
+![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
+![Filament](https://img.shields.io/badge/Filament-5-FDAE4B)
+![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Self-hosted](https://img.shields.io/badge/Self--hosted-Proxmox-E57000?logo=proxmox&logoColor=white)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-Tunnel-F38020?logo=cloudflare&logoColor=white)
+
+</div>
+
+---
+
+## 👋 About me
+
+<!-- ABOUT:START -->
+<!-- This section is updated automatically from https://nikolajalbrechtsen.com/about — edit it in the admin panel, not here. -->
+
+*Syncing from [nikolajalbrechtsen.com/about](https://nikolajalbrechtsen.com/about)…*
+
+<!-- ABOUT:END -->
+
+---
+
+## ✨ The website
+
+A fast, modern site I built and host myself. Everything on it is editable from my own admin panel. No code changes needed for content.
+
+- **Pages built from blocks:** hero banners, feature cards, image + text, stats, FAQ, events and a contact form, all arranged by drag and drop.
+- **Blog:** posts with cover images, tags, scheduling and members-only posts.
+- **Accounts:** sign up with email, Google or GitHub, with pages that only members can see.
+- **Calendar:** events, shown on the site when I make them public.
+- **Media library:** every image on the site comes from one place, with uploads straight from my PC.
+- **Visitor stats:** unique visitors per day, counted privately (IP addresses are hashed, never stored).
+- **Light and dark mode** that follows your system.
+
+## 🛠️ Admin panel
+
+| | |
 | --- | --- |
-| `/` | Public website (pages built from blocks in the admin panel) |
-| `/blog` | Blog |
-| `/login`, `/register` | User accounts (email + Google/GitHub) |
-| `/dashboard` | Logged-in user area (members-only content, profile settings) |
-| `/admin` | Admin panel |
-| `/admin/file-editor` | Monaco (VS Code) editor for every file of the site |
-| `/code/` | Full VS Code in the browser (code-server) — super admins only |
+| **Content** | Pages, blog posts, media, calendar, contact messages |
+| **Users** | Accounts, roles and permissions |
+| **System** | Site settings (name, logo, colors, login options), a VS Code-style file editor, and full VS Code in the browser with a terminal |
 
----
-
-## 1. Deploy to Proxmox (first time)
-
-### a) Copy the helper script to the Proxmox host
-
-From **PowerShell on your PC** (replace `PROXMOX-IP`):
-
-```powershell
-scp deploy/proxmox-helper.sh root@PROXMOX-IP:/root/
-```
-
-### b) Run it in the Proxmox host shell
-
-```bash
-bash /root/proxmox-helper.sh
-```
-
-It works like the community helper scripts: choose **Default** (2 CPU, 2 GB RAM, 10 GB disk, DHCP)
-or **Advanced**, enter your admin email, and it creates a Debian 13 container.
-Halfway through it shows a **deploy key** with a direct link to GitHub. Add it and
-**tick "Allow write access"**, then press ENTER. When it finishes it prints the website URL,
-the admin login and the container root password.
-
-<details><summary>Manual alternative (existing Debian container)</summary>
-
-Copy `deploy/install.sh` into any Debian 12/13 container and run `bash install.sh`. It asks the same questions.
-</details>
-
----
-
-## 2. Everyday workflow
+## 🏠 How it's hosted
 
 ```text
-edit on your PC  →  git push  →  type `update` in the container terminal
+GitHub ──git push──▶ Proxmox LXC container (Debian 13)
+                       Nginx · PHP 8.4 · MariaDB · code-server
+                              │
+                     Cloudflare Tunnel (HTTPS, no open ports)
+                              │
+                     https://nikolajalbrechtsen.com
 ```
 
-* `update` — pulls from GitHub, installs packages / rebuilds CSS+JS only when needed,
-  migrates the database, clears caches. The site shows a maintenance page for a few seconds.
-* `update --full` — rebuild everything.
-
-**Editing online** (Admin → File editor, or VS Code at `/code/`) changes files directly on the server.
-They go live immediately for PHP/Blade files. The next `update` commits them and pushes them to GitHub,
-so run `git pull` on your PC afterwards.
-
-* CSS/JS edited online → click **Build CSS/JS** in the File editor (or run `update --full`).
-* Config files edited online → click **Clear caches**.
-
-Content (pages, posts, settings, users, uploads) lives in the database / `storage` and is never touched by `update`.
+The site runs in a container on my own Proxmox server. Deploying a change is one command, `update`, which pulls from GitHub, builds and migrates. Cloudflare Tunnel provides HTTPS without opening any ports on my network.
 
 ---
 
-## 3. Admin panel guide
-
-| Menu | What you can do |
-| --- | --- |
-| **Pages** | Build pages with drag-and-drop blocks: Hero, Text, Feature cards, Image + text, Stats, FAQ, Call to action, Latest posts, Contact form, Custom HTML. Choose URL, menu position, homepage, and *Everyone* or *Members only*. Drag rows to reorder the menu. |
-| **Blog posts** | Rich-text editor with images, cover image, tags, draft / scheduled / published, members-only. |
-| **Messages** | Contact form submissions (badge shows unread). |
-| **Users** | Create/edit users, assign roles, deactivate, verify email. |
-| **Roles & permissions** | Tick what each role can do. Built in: `super_admin` (everything), `admin`, `editor`, `member` (default for sign-ups). |
-| **Settings** | Site name, tagline, logo, favicon, brand color, social links, announcement banner, sign-ups on/off, email verification, Google/GitHub login keys, blog options, analytics code. |
-| **File editor** | VS Code-style editor (tabs, syntax highlighting, Ctrl+S) for all project files. |
-| **VS Code** | Opens full VS Code (code-server) with terminal, search, git and extensions. |
-
-### Social login
-
-Admin → Settings → *Users & login*. The page shows the exact callback URL to paste into
-Google Cloud Console / GitHub OAuth app.
-
-### Email
-
-Password reset, email verification and contact-form notifications need SMTP. Edit `/var/www/site/.env`
-in VS Code (`MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`), then
-click **Clear caches**. Until then, mails are written to `storage/logs`.
-
-### HTTPS / domain (Cloudflare Tunnel)
-
-No router port-forwarding needed; Cloudflare provides the certificate.
-
-1. Cloudflare dashboard → **Zero Trust → Networks → Tunnels → Create a tunnel** → *Cloudflared* → name it → copy the **token**.
-2. **Public hostname:** your domain → Service **HTTP** → `localhost:80` (add `www` the same way if you want).
-3. In the container: `bash /var/www/site/deploy/cloudflare-tunnel.sh` → enter the domain and paste the token.
-4. Cloudflare → SSL/TLS → **Always Use HTTPS: on**. Speed → **Rocket Loader: off** (it breaks the admin panel).
-
-Opening the site on your LAN via `http://<container-ip>` keeps working.
-
----
-
-## 4. Running locally on Windows (optional)
-
-Portable PHP + Composer live in `.tools/` (not committed).
-
-```powershell
-.\.tools\php\php.exe artisan serve          # http://127.0.0.1:8000
-npm run dev                                  # live CSS/JS reload (second terminal)
-.\.tools\php\php.exe artisan test            # run the tests
-```
-
-## 5. Where things are
-
-| Path | What |
-| --- | --- |
-| `app/Filament/` | Admin panel: resources, Settings page, File editor, dashboard widgets |
-| `app/Filament/Blocks/PageBlocks.php` | Page block definitions (add new blocks here) |
-| `resources/views/blocks/` | How each block looks on the website |
-| `resources/views/components/layouts/site.blade.php` | Website header / footer layout |
-| `resources/css/app.css` | Tailwind CSS + theme |
-| `routes/web.php` | Website routes |
-| `deploy/` | `install.sh`, `update.sh`, Nginx config |
+<sub>The **About me** section above is synced automatically from the website by a [GitHub Action](.github/workflows/sync-about.yml).
+Setup, deployment and development notes: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).</sub>
