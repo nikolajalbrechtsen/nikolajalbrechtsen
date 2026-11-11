@@ -2,8 +2,10 @@
 
 namespace App\Filament\Blocks;
 
+use App\Filament\Forms\Components\MediaPicker;
+use App\Filament\Forms\MediaLibrary;
+use App\Filament\Forms\MediaLibraryPlugin;
 use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -49,7 +51,7 @@ class PageBlocks
                         TextInput::make('secondary_label')->label('Second button text'),
                         TextInput::make('secondary_url')->label('Second button link'),
                     ]),
-                    FileUpload::make('image')->image()->disk('public')->directory('pages')->imageEditor(),
+                    MediaPicker::make('image'),
                 ]),
 
             Block::make('rich_text')
@@ -60,7 +62,9 @@ class PageBlocks
                     RichEditor::make('content')
                         ->fileAttachmentsDisk('public')
                         ->fileAttachmentsDirectory('pages')
-                        ->fileAttachmentsVisibility('public'),
+                        ->fileAttachmentsVisibility('public')
+                        ->plugins([MediaLibraryPlugin::make()])
+                        ->toolbarButtons(MediaLibrary::TOOLBAR),
                 ]),
 
             Block::make('features')
@@ -85,9 +89,11 @@ class PageBlocks
                 ->label('Image + text')
                 ->icon('heroicon-o-photo')
                 ->schema([
-                    FileUpload::make('image')->image()->disk('public')->directory('pages')->imageEditor()->required(),
+                    MediaPicker::make('image')->required(),
                     TextInput::make('heading'),
-                    RichEditor::make('content'),
+                    RichEditor::make('content')
+                        ->plugins([MediaLibraryPlugin::make()])
+                        ->toolbarButtons(MediaLibrary::TOOLBAR),
                     Grid::make(2)->schema([
                         TextInput::make('button_label'),
                         TextInput::make('button_url'),

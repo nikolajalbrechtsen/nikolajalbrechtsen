@@ -2,11 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Forms\Components\MediaPicker;
 use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\ColorPicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -84,12 +84,12 @@ class Settings extends Page
 
                     Tab::make('Branding')->icon(Heroicon::OutlinedSwatch)->schema([
                         Grid::make(2)->schema([
-                            FileUpload::make('logo')->image()->disk('public')->directory('branding')
+                            MediaPicker::make('logo')
                                 ->helperText('Shown in the header. SVG or PNG with transparent background works best.'),
-                            FileUpload::make('favicon')->image()->disk('public')->directory('branding'),
+                            MediaPicker::make('favicon'),
                         ]),
                         ColorPicker::make('primary_color')->helperText('Accent color used for buttons and links on the website.'),
-                        FileUpload::make('meta_image')->label('Social sharing image')->image()->disk('public')->directory('branding')
+                        MediaPicker::make('meta_image')->label('Social sharing image')
                             ->helperText('1200×630 image shown when the site is shared on social media.'),
                     ]),
 

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Posts;
 
+use App\Filament\Forms\Components\MediaPicker;
+use App\Filament\Forms\MediaLibrary;
+use App\Filament\Forms\MediaLibraryPlugin;
 use App\Models\Post;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -9,7 +12,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -69,6 +71,8 @@ class PostResource extends Resource
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('posts')
                             ->fileAttachmentsVisibility('public')
+                            ->plugins([MediaLibraryPlugin::make()])
+                            ->toolbarButtons(MediaLibrary::TOOLBAR)
                             ->extraInputAttributes(['style' => 'min-height: 24rem']),
                     ]),
                 ]),
@@ -90,7 +94,7 @@ class PostResource extends Resource
                     ]),
                     Section::make('Details')->schema([
                         TextInput::make('slug')->label('URL')->prefix('/blog/')->required()->alphaDash()->unique(ignoreRecord: true),
-                        FileUpload::make('cover_image')->image()->disk('public')->directory('posts')->imageEditor(),
+                        MediaPicker::make('cover_image'),
                         TagsInput::make('tags'),
                     ]),
                     Section::make('SEO')->collapsed()->schema([
