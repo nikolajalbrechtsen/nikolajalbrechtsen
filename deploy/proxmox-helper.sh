@@ -122,9 +122,11 @@ header
 # ---- Template ----------------------------------------------------------------
 msg_info "Updating template list"
 pveam update >/dev/null 2>&1 || true
-TEMPLATE=$(pveam available --section system | awk '/debian-13-standard/ {print $2}' | sort -V | tail -1)
-[[ -n "$TEMPLATE" ]] || TEMPLATE=$(pveam available --section system | awk '/debian-12-standard/ {print $2}' | sort -V | tail -1)
-[[ -n "$TEMPLATE" ]] || die "No Debian template found."
+ARCH=$(dpkg --print-architecture)   # amd64 on normal PCs/servers
+find_template() { pveam available --section system | awk -v v="$1" -v a="_${ARCH}." '$2 ~ v && index($2, a) {print $2}' | sort -V | tail -1; }
+TEMPLATE=$(find_template "debian-13-standard")
+[[ -n "$TEMPLATE" ]] || TEMPLATE=$(find_template "debian-12-standard")
+[[ -n "$TEMPLATE" ]] || die "No Debian template found for ${ARCH}."
 msg_ok "Template: ${TEMPLATE}"
 
 if ! pveam list "$TEMPLATE_STORAGE" | grep -q "$TEMPLATE"; then
@@ -148,6 +150,7 @@ pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" \
     --rootfs "${CT_STORAGE}:${DISK}" \
     --net0 "$NET0" \
     --ostype debian \
+    --arch "$ARCH" \
     --unprivileged 1 \
     --features nesting=1 \
     --onboot 1 \
@@ -155,6 +158,16 @@ pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" \
     --tags "website;laravel" \
     --description "Laravel website. Deploy: push to GitHub, then run 'update' in the console." >/dev/null
 msg_ok "Created LXC container ${CTID}"
+
+# If anything fails from here on, remove the half-finished container so you can simply re-run.
+cleanup_ct() {
+    echo
+    msg_error "Setup failed (line ${1}). Removing container ${CTID} so you can re-run the script."
+    pct stop "$CTID" >/dev/null 2>&1 || true
+    pct destroy "$CTID" --purge >/dev/null 2>&1 || true
+    exit 1
+}
+trap 'cleanup_ct $LINENO' ERR
 
 msg_info "Starting container"
 pct start "$CTID"
