@@ -10,6 +10,7 @@
 #  `git pull` them.
 # =============================================================================
 set -uo pipefail
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 APP_DIR=/var/www/site
 APP_USER=www-data

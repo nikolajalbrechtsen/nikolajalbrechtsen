@@ -136,7 +136,7 @@ if ! pveam list "$TEMPLATE_STORAGE" | grep -q "$TEMPLATE"; then
 fi
 
 # ---- Create container --------------------------------------------------------
-ROOT_PW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 || true)
+ROOT_PW=$(tr -dc 'A-Za-z0-9' </dev/urandom 2>/dev/null | head -c 16 || true)
 NET0="name=eth0,bridge=${BRIDGE},ip=${NET}"
 [[ -n "$GATE" ]] && NET0+=",gw=${GATE}"
 [[ -n "$VLAN" ]] && NET0+=",tag=${VLAN}"
@@ -179,7 +179,7 @@ pct exec "$CTID" -- getent hosts deb.debian.org >/dev/null 2>&1 || die "Containe
 CT_IP=$(pct exec "$CTID" -- hostname -I | awk '{print $1}')
 msg_ok "Container running at ${CT_IP}"
 
-run() { pct exec "$CTID" -- env LANG=C.UTF-8 DEBIAN_FRONTEND=noninteractive bash -c "$1"; }
+run() { pct exec "$CTID" -- env LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin DEBIAN_FRONTEND=noninteractive bash -c "$1"; }
 
 # ---- GitHub access -----------------------------------------------------------
 msg_info "Preparing GitHub access"
@@ -213,7 +213,7 @@ msg_ok "Repository cloned"
 
 # ---- Install -----------------------------------------------------------------
 echo -e "\n ${INFO} Installing the website inside the container (5–10 minutes)…\n"
-pct exec "$CTID" -- env LANG=C.UTF-8 \
+pct exec "$CTID" -- env LANG=C.UTF-8 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     REPO_URL="$REPO_URL" BRANCH="$BRANCH" APP_URL="${APP_URL:-http://${CT_IP}}" \
     APP_NAME="$APP_NAME" ADMIN_EMAIL="$ADMIN_EMAIL" ADMIN_NAME="$ADMIN_NAME" \
     bash /var/www/site/deploy/install.sh </dev/null

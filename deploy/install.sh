@@ -11,6 +11,7 @@
 #  command.
 # =============================================================================
 set -euo pipefail
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 APP_DIR=/var/www/site
 APP_USER=www-data
@@ -61,8 +62,8 @@ ask ADMIN_EMAIL "Admin email"
 [[ "$ADMIN_EMAIL" == *@* ]] || die "A valid admin email is required."
 ask ADMIN_NAME "Admin name" "Admin"
 
-ADMIN_PASSWORD=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 20 || true)
-DB_PASSWORD=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 || true)
+ADMIN_PASSWORD=$(tr -dc 'A-Za-z0-9' </dev/urandom 2>/dev/null | head -c 20 || true)
+DB_PASSWORD=$(tr -dc 'A-Za-z0-9' </dev/urandom 2>/dev/null | head -c 32 || true)
 
 # ----------------------------------------------------------------------------
 # System packages
@@ -94,8 +95,8 @@ fi
 ok "Composer $(composer --version 2>/dev/null | awk '{print $3}')"
 
 if ! command -v node >/dev/null || [[ $(node -v | cut -d. -f1 | tr -d v) -lt 20 ]]; then
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
-    apt-get install -y -qq nodejs >/dev/null
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1
+    apt-get install -y -qq nodejs >/dev/null 2>&1
 fi
 ok "Node $(node -v)"
 
