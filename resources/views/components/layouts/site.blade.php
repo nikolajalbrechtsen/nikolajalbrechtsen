@@ -9,6 +9,7 @@
     $pageTitle = $title ? $title.' · '.$siteName : $siteName.(setting('site_tagline') ? ' · '.setting('site_tagline') : '');
     $metaDescription = $description ?: setting('site_description');
     $metaImage = $image ?: public_url(setting('meta_image'));
+    $metaImage = $metaImage ? url($metaImage) : null; // social networks need an absolute URL
     $logo = public_url(setting('logo'));
     $favicon = public_url(setting('favicon'));
     $user = auth()->user();

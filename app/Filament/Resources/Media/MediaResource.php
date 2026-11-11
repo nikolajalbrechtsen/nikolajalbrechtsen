@@ -74,11 +74,63 @@ class MediaResource extends Resource
                 ->maxLength(100),
             TextInput::make('url')
                 ->label('Public URL')
-                ->formatStateUsing(fn (?Media $record) => $record?->url())
+                ->formatStateUsing(fn (?Media $record) => $record?->absoluteUrl())
                 ->disabled()
                 ->dehydrated(false)
                 ->copyable(),
         ])->columns(1);
+    }
+
+    /**
+     * Copies the file URL. Falls back to execCommand because the Clipboard API
+     * only works on https/localhost (not on http://<ip>).
+     */
+    public static function copyJs(Media $record): string
+    {
+        return 'const t = '.Js::from($record->absoluteUrl()).';'
+            .'const ok = () => $tooltip("Copied!", { timeout: 1500 });'
+            .'if (window.isSecureContext && navigator.clipboard) { navigator.clipboard.writeText(t).then(ok) } else {'
+            .' const a = document.createElement("textarea"); a.value = t; a.style.position = "fixed"; a.style.opacity = "0";'
+            .' document.body.appendChild(a); a.select(); document.execCommand("copy"); a.remove(); ok(); }';
+    }
+
+    public static function previewAction(): Action
+    {
+        return Action::make('preview')
+            ->label('Preview')
+            ->icon(Heroicon::OutlinedEye)
+            ->iconButton()
+            ->tooltip('Preview')
+            ->modalHeading(fn (Media $record) => $record->name)
+            ->modalDescription(fn (Media $record) => collect([
+                $record->humanSize(),
+                $record->width ? $record->width.'×'.$record->height.' px' : null,
+                $record->mime_type,
+                $record->folder ? '📁 '.$record->folder : null,
+                'Uploaded '.$record->created_at->diffForHumans(),
+            ])->filter()->join(' · '))
+            ->modalWidth('7xl')
+            ->modalContent(fn (Media $record) => view('filament.media.preview', ['media' => $record]))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close')
+            ->extraModalFooterActions(fn (Media $record) => [
+                Action::make('previewCopy')
+                    ->label('Copy URL')
+                    ->icon(Heroicon::OutlinedClipboardDocument)
+                    ->color('gray')
+                    ->alpineClickHandler(static::copyJs($record)),
+                Action::make('previewDownload')
+                    ->label('Download')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
+                    ->color('gray')
+                    ->url($record->url())
+                    ->extraAttributes(['download' => $record->name]),
+                Action::make('previewOpen')
+                    ->label('Open in new tab')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->color('gray')
+                    ->url($record->url(), shouldOpenInNewTab: true),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -108,13 +160,15 @@ class MediaResource extends Resource
                     }),
                 SelectFilter::make('folder')->options(fn () => static::folderOptions()),
             ])
+            ->recordAction('preview') // clicking a card opens the preview
             ->recordActions([
+                static::previewAction(),
                 Action::make('copyUrl')
                     ->label('Copy URL')
                     ->icon(Heroicon::OutlinedClipboardDocument)
                     ->iconButton()
                     ->tooltip('Copy URL')
-                    ->alpineClickHandler(fn (Media $record) => 'window.navigator.clipboard.writeText('.Js::from($record->url()).'); $tooltip("Copied!", { timeout: 1500 })'),
+                    ->alpineClickHandler(fn (Media $record) => static::copyJs($record)),
                 Action::make('open')
                     ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                     ->iconButton()

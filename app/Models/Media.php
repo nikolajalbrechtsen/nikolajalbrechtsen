@@ -46,9 +46,16 @@ class Media extends Model
         ]);
     }
 
+    /** Relative URL (/storage/...) — works on any domain/IP. */
     public function url(): string
     {
         return Storage::disk('public')->url($this->path);
+    }
+
+    /** Full URL for copying/sharing, based on the address you're using right now. */
+    public function absoluteUrl(): string
+    {
+        return url($this->url());
     }
 
     public function isImage(): bool

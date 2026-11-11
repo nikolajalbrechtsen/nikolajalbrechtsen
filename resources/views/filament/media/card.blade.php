@@ -8,6 +8,11 @@
     <div style="aspect-ratio:4/3;width:100%;border-radius:.6rem;overflow:hidden;display:grid;place-items:center;background:repeating-conic-gradient(rgb(127 127 127 / .12) 0% 25%, transparent 0% 50%) 50% / 16px 16px">
         @if ($record->isImage())
             <img src="{{ $record->url() }}" alt="{{ $record->alt }}" loading="lazy" style="width:100%;height:100%;object-fit:cover">
+        @elseif ($record->type() === 'video')
+            <div style="position:relative;width:100%;height:100%">
+                <video src="{{ $record->url() }}#t=0.5" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;background:#000"></video>
+                <span style="position:absolute;inset:0;display:grid;place-items:center;font-size:1.6rem;color:#fff;text-shadow:0 2px 8px rgb(0 0 0 / .6)">▶</span>
+            </div>
         @else
             <span style="font-size:2.5rem">{{ $icons[$record->type()] ?? '📄' }}</span>
         @endif

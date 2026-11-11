@@ -101,6 +101,28 @@ class CalendarAndMediaTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
+    public function test_media_urls_are_relative_and_preview_opens(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('media/clip.mp4', 'fake-video');
+        Storage::disk('public')->put('media/pic.png', UploadedFile::fake()->image('pic.png')->getContent());
+        $video = Media::fromPath('media/clip.mp4');
+        $image = Media::fromPath('media/pic.png');
+
+        // Relative, so thumbnails work on any IP/domain and over https
+        $this->assertSame('/storage/media/pic.png', $image->url());
+        $this->assertStringStartsWith('http', $image->absoluteUrl());
+
+        Livewire::test(ListMedia::class)
+            ->mountTableAction('preview', $image)
+            ->assertSee('/storage/media/pic.png')
+            ->assertSee('<img', false);
+
+        Livewire::test(ListMedia::class)
+            ->mountTableAction('preview', $video)
+            ->assertSee('<video', false);
+    }
+
     public function test_members_cannot_open_calendar_or_media(): void
     {
         $this->actingAs(User::factory()->create());
