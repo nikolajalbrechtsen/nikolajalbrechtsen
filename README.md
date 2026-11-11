@@ -17,37 +17,30 @@ an online VS Code editor and one-command deploys to a Proxmox container.
 
 ## 1. Deploy to Proxmox (first time)
 
-### a) Create the container with the helper script
+### a) Copy the helper script to the Proxmox host
 
-In the **Proxmox host shell** run the community Debian script:
-
-```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-```
-
-Choose **Advanced** and use at least: **Debian 13**, **2 CPU cores**, **2048 MB RAM**, **10 GB disk**.
-Note the container ID (e.g. `105`) and its IP address when it's done.
-
-### b) Copy the installer into the container
-
-From **PowerShell on your PC** (replace `PROXMOX-IP` and `105`):
+From **PowerShell on your PC** (replace `PROXMOX-IP`):
 
 ```powershell
-scp deploy/install.sh root@PROXMOX-IP:/tmp/install.sh
-ssh root@PROXMOX-IP "pct push 105 /tmp/install.sh /root/install.sh"
+scp deploy/proxmox-helper.sh root@PROXMOX-IP:/root/
 ```
 
-### c) Run it
-
-Open the container console in Proxmox (or `pct enter 105`) and run:
+### b) Run it in the Proxmox host shell
 
 ```bash
-bash /root/install.sh
+bash /root/proxmox-helper.sh
 ```
 
-It asks for the repo URL (`git@github.com:YOU/REPO.git`), the site URL, site name and admin email,
-then shows a **deploy key** → add it in GitHub → repo → *Settings → Deploy keys* and
-**tick "Allow write access"**. When it finishes it prints the admin login.
+It works like the community helper scripts: choose **Default** (2 CPU, 2 GB RAM, 10 GB disk, DHCP)
+or **Advanced**, enter your admin email, and it creates a Debian 13 container.
+Halfway through it shows a **deploy key** with a direct link to GitHub. Add it and
+**tick "Allow write access"**, then press ENTER. When it finishes it prints the website URL,
+the admin login and the container root password.
+
+<details><summary>Manual alternative (existing Debian container)</summary>
+
+Copy `deploy/install.sh` into any Debian 12/13 container and run `bash install.sh`. It asks the same questions.
+</details>
 
 ---
 

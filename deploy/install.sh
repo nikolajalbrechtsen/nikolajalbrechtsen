@@ -40,16 +40,26 @@ cat <<'BANNER'
 BANNER
 echo -e "${c_off}"
 
-read -rp "GitHub repo SSH URL (e.g. git@github.com:you/website.git): " REPO_URL
-[[ -n "$REPO_URL" ]] || die "A repository URL is required."
-read -rp "Branch [main]: " BRANCH; BRANCH=${BRANCH:-main}
+# Each answer can also be passed as an environment variable (the Proxmox
+# helper script does this), in which case the question is skipped.
+ask() { # ask VAR "Question" "default"
+    local var=$1 question=$2 default=${3:-} answer
+    if [[ -z "${!var:-}" ]]; then
+        read -rp "${question}${default:+ [$default]}: " answer
+        printf -v "$var" '%s' "${answer:-$default}"
+    fi
+}
+
 CT_IP=$(hostname -I | awk '{print $1}')
-read -rp "Public URL of the site [http://${CT_IP}]: " APP_URL; APP_URL=${APP_URL:-http://${CT_IP}}
+ask REPO_URL "GitHub repo SSH URL (e.g. git@github.com:you/website.git)"
+[[ -n "$REPO_URL" ]] || die "A repository URL is required."
+ask BRANCH "Branch" "main"
+ask APP_URL "Public URL of the site" "http://${CT_IP}"
 APP_URL=${APP_URL%/}
-read -rp "Site name [My Website]: " APP_NAME; APP_NAME=${APP_NAME:-My Website}
-read -rp "Admin email: " ADMIN_EMAIL
+ask APP_NAME "Site name" "My Website"
+ask ADMIN_EMAIL "Admin email"
 [[ "$ADMIN_EMAIL" == *@* ]] || die "A valid admin email is required."
-read -rp "Admin name [Admin]: " ADMIN_NAME; ADMIN_NAME=${ADMIN_NAME:-Admin}
+ask ADMIN_NAME "Admin name" "Admin"
 
 ADMIN_PASSWORD=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 20 || true)
 DB_PASSWORD=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 || true)
@@ -118,21 +128,25 @@ chmod 700 "$APP_HOME/.ssh"
 if [[ ! -f "$APP_HOME/.ssh/id_ed25519" ]]; then
     as_app ssh-keygen -t ed25519 -N "" -C "website-deploy@$(hostname)" -f "$APP_HOME/.ssh/id_ed25519" >/dev/null
 fi
-as_app bash -c "ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null"
+grep -q github.com "$APP_HOME/.ssh/known_hosts" 2>/dev/null \
+    || as_app bash -c "ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null"
 
-echo
-echo -e "${c_yellow}Add this deploy key to your GitHub repo:${c_off}"
-echo -e "  GitHub → your repo → Settings → Deploy keys → Add deploy key"
-echo -e "  Title: Proxmox server   ${c_yellow}✔ tick \"Allow write access\"${c_off} (so online edits can be pushed back)"
-echo
-cat "$APP_HOME/.ssh/id_ed25519.pub"
-echo
-read -rp "Press ENTER once the key is added… " _
+# Skip the key step if access already works (e.g. set up by the Proxmox helper script).
+if ! as_app git ls-remote "$REPO_URL" >/dev/null 2>&1; then
+    echo
+    echo -e "${c_yellow}Add this deploy key to your GitHub repo:${c_off}"
+    echo -e "  GitHub → your repo → Settings → Deploy keys → Add deploy key"
+    echo -e "  Title: Proxmox server   ${c_yellow}✔ tick \"Allow write access\"${c_off} (so online edits can be pushed back)"
+    echo
+    cat "$APP_HOME/.ssh/id_ed25519.pub"
+    echo
+    read -rp "Press ENTER once the key is added… " _
 
-until as_app git ls-remote "$REPO_URL" >/dev/null 2>&1; do
-    warn "Cannot reach the repo yet. Check the key / URL and press ENTER to retry (Ctrl+C to quit)."
-    read -r _
-done
+    until as_app git ls-remote "$REPO_URL" >/dev/null 2>&1; do
+        warn "Cannot reach the repo yet. Check the key / URL and press ENTER to retry (Ctrl+C to quit)."
+        read -r _
+    done
+fi
 ok "GitHub access works"
 
 if [[ ! -d "$APP_DIR/.git" ]]; then
