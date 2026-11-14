@@ -1,19 +1,23 @@
-<x-layouts.site :title="$post->meta_title ?: $post->title" :description="$post->meta_description ?: $post->summary()" :image="$post->coverUrl()">
+@php
+    $title = $post->translate('title');
+    $excerpt = $post->translate('excerpt');
+@endphp
+<x-layouts.site :title="$post->translate('meta_title') ?: $title" :description="$post->translate('meta_description') ?: $post->summary()" :image="$post->coverUrl()">
     <article class="mx-auto max-w-3xl px-5 py-16 sm:px-8 sm:py-24">
-        <a href="{{ route('blog.index') }}" class="text-sm font-medium text-zinc-500 hover:text-brand">← {{ setting('blog_title', 'Blog') }}</a>
+        <a href="{{ route('blog.index') }}" class="text-sm font-medium text-zinc-500 hover:text-brand">← {{ setting_t('blog_title', 'Blog') }}</a>
 
         <header class="mt-6">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-500">
-                <time datetime="{{ $post->published_at->toDateString() }}">{{ $post->published_at->format('F j, Y') }}</time>
+                <time datetime="{{ $post->published_at->toDateString() }}">{{ $post->published_at->isoFormat('LL') }}</time>
                 <span>·</span>
-                <span>{{ $post->readingTime() }} min read</span>
+                <span>{{ __(':minutes min read', ['minutes' => $post->readingTime()]) }}</span>
                 @if ($post->isMembersOnly())
-                    <span class="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">Members only</span>
+                    <span class="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">{{ __('Members only') }}</span>
                 @endif
             </div>
-            <h1 class="mt-3 text-4xl font-bold tracking-tight text-balance text-zinc-900 sm:text-5xl dark:text-white">{{ $post->title }}</h1>
-            @if ($post->excerpt)
-                <p class="mt-4 text-xl text-zinc-600 dark:text-zinc-400">{{ $post->excerpt }}</p>
+            <h1 class="mt-3 text-4xl font-bold tracking-tight text-balance text-zinc-900 sm:text-5xl dark:text-white">{{ $title }}</h1>
+            @if ($excerpt)
+                <p class="mt-4 text-xl text-zinc-600 dark:text-zinc-400">{{ $excerpt }}</p>
             @endif
             @if ($post->author)
                 <div class="mt-6 flex items-center gap-3">
@@ -32,7 +36,7 @@
         @endif
 
         <div class="prose prose-zinc prose-lg mt-10 max-w-none dark:prose-invert prose-headings:tracking-tight prose-a:text-brand prose-img:rounded-2xl">
-            {{ rich($post->content) }}
+            {{ rich($post->translate('content')) }}
         </div>
 
         @if ($post->tags)
@@ -46,7 +50,7 @@
 
     @if ($related->isNotEmpty())
         <section class="mx-auto max-w-6xl px-5 sm:px-8">
-            <h2 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">More posts</h2>
+            <h2 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">{{ __('More posts') }}</h2>
             <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($related as $p)
                     <x-site.post-card :post="$p" />

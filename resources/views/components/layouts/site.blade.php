@@ -6,8 +6,10 @@
 
 @php
     $siteName = setting('site_name', config('app.name'));
-    $pageTitle = $title ? $title.' · '.$siteName : $siteName.(setting('site_tagline') ? ' · '.setting('site_tagline') : '');
-    $metaDescription = $description ?: setting('site_description');
+    $tagline = setting_t('site_tagline');
+    $pageTitle = $title ? $title.' · '.$siteName : $siteName.($tagline ? ' · '.$tagline : '');
+    $metaDescription = $description ?: setting_t('site_description');
+    $blogTitle = setting_t('blog_title', 'Blog');
     $metaImage = $image ?: public_url(setting('meta_image'));
     $metaImage = $metaImage ? url($metaImage) : null; // social networks need an absolute URL
     $logo = public_url(setting('logo'));
@@ -27,6 +29,7 @@
     @if ($metaImage)<meta property="og:image" content="{{ $metaImage }}">@endif
     <meta property="og:url" content="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:locale" content="{{ app()->getLocale() === 'da' ? 'da_DK' : str_replace('-', '_', app()->getLocale()) }}">
     <link rel="canonical" href="{{ url()->current() }}">
     @if ($favicon)<link rel="icon" href="{{ $favicon }}">@endif
 
@@ -46,7 +49,7 @@
         <div class="absolute left-1/2 top-[-12rem] h-[36rem] w-[60rem] -translate-x-1/2 rounded-full bg-brand/15 blur-3xl dark:bg-brand/20"></div>
     </div>
 
-    @if ($announcement = setting('announcement'))
+    @if ($announcement = setting_t('announcement'))
         <div class="bg-brand px-4 py-2 text-center text-sm font-medium text-white">{{ $announcement }}</div>
     @endif
 
@@ -67,20 +70,22 @@
                     @php $active = request()->is($navPage->slug) || ($navPage->is_homepage && request()->is('/')); @endphp
                     <a href="{{ $navPage->url() }}"
                        class="rounded-full px-3.5 py-2 text-sm font-medium transition {{ $active ? 'bg-zinc-900/5 text-zinc-900 dark:bg-white/10 dark:text-white' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white' }}">
-                        {{ $navPage->title }}
+                        {{ $navPage->translate('title') }}
                         @if ($navPage->visibility === 'members')<span class="ml-0.5 text-xs opacity-60">🔒</span>@endif
                     </a>
                 @endforeach
                 @if (setting('blog_enabled', true))
                     <a href="{{ route('blog.index') }}"
                        class="rounded-full px-3.5 py-2 text-sm font-medium transition {{ request()->is('blog*') ? 'bg-zinc-900/5 text-zinc-900 dark:bg-white/10 dark:text-white' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white' }}">
-                        {{ setting('blog_title', 'Blog') }}
+                        {{ $blogTitle }}
                     </a>
                 @endif
             </div>
 
             <div class="ml-auto flex items-center gap-2">
-                <button type="button" x-data x-on:click="$flux.dark = ! $flux.dark" class="grid size-9 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-900/5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white" aria-label="Toggle dark mode">
+                <div class="hidden sm:block"><x-site.language-switcher /></div>
+
+                <button type="button" x-data x-on:click="$flux.dark = ! $flux.dark" class="grid size-9 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-900/5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white" aria-label="{{ __('Toggle dark mode') }}">
                     <flux:icon.moon variant="mini" class="dark:hidden" />
                     <flux:icon.sun variant="mini" class="hidden dark:block" />
                 </button>
@@ -96,25 +101,25 @@
                             {{ Str::before($user->name, ' ') }}
                         </button>
                         <div x-show="userMenu" x-transition.origin.top.right x-cloak class="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-1.5 text-sm shadow-xl dark:border-white/10 dark:bg-zinc-900">
-                            <a href="{{ route('dashboard') }}" class="block rounded-xl px-3 py-2 hover:bg-zinc-100 dark:hover:bg-white/10">My account</a>
-                            <a href="{{ route('settings.profile') }}" class="block rounded-xl px-3 py-2 hover:bg-zinc-100 dark:hover:bg-white/10">Profile settings</a>
+                            <a href="{{ route('dashboard') }}" class="block rounded-xl px-3 py-2 hover:bg-zinc-100 dark:hover:bg-white/10">{{ __('My account') }}</a>
+                            <a href="{{ route('settings.profile') }}" class="block rounded-xl px-3 py-2 hover:bg-zinc-100 dark:hover:bg-white/10">{{ __('Profile settings') }}</a>
                             @can('access_admin')
-                                <a href="{{ url('/admin') }}" class="block rounded-xl px-3 py-2 font-medium text-brand hover:bg-zinc-100 dark:hover:bg-white/10">Admin panel</a>
+                                <a href="{{ url('/admin') }}" class="block rounded-xl px-3 py-2 font-medium text-brand hover:bg-zinc-100 dark:hover:bg-white/10">{{ __('Admin panel') }}</a>
                             @endcan
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-zinc-100 dark:hover:bg-white/10">Log out</button>
+                                <button type="submit" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-zinc-100 dark:hover:bg-white/10">{{ __('Log out') }}</button>
                             </form>
                         </div>
                     </div>
                 @else
-                    <a href="{{ route('login') }}" class="hidden rounded-full px-3.5 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 md:inline-flex dark:text-zinc-400 dark:hover:text-white">Log in</a>
+                    <a href="{{ route('login') }}" class="hidden rounded-full px-3.5 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 md:inline-flex dark:text-zinc-400 dark:hover:text-white">{{ __('Log in') }}</a>
                     @if (setting('registration_enabled', true))
-                        <a href="{{ route('register') }}" class="btn-primary hidden !py-2 md:inline-flex">Sign up</a>
+                        <a href="{{ route('register') }}" class="btn-primary hidden !py-2 md:inline-flex">{{ __('Sign up') }}</a>
                     @endif
                 @endauth
 
-                <button type="button" @click="open = !open" class="grid size-9 place-items-center rounded-full hover:bg-zinc-900/5 md:hidden dark:hover:bg-white/10" aria-label="Menu">
+                <button type="button" @click="open = !open" class="grid size-9 place-items-center rounded-full hover:bg-zinc-900/5 md:hidden dark:hover:bg-white/10" aria-label="{{ __('Menu') }}">
                     <flux:icon.bars-3 x-show="!open" />
                     <flux:icon.x-mark x-show="open" x-cloak />
                 </button>
@@ -125,27 +130,31 @@
         <div x-show="open" x-transition x-cloak class="border-t border-zinc-200/60 px-5 py-4 md:hidden dark:border-white/10">
             <div class="flex flex-col gap-1 text-sm font-medium">
                 @foreach ($navPages ?? [] as $navPage)
-                    <a href="{{ $navPage->url() }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ $navPage->title }}</a>
+                    <a href="{{ $navPage->url() }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ $navPage->translate('title') }}</a>
                 @endforeach
                 @if (setting('blog_enabled', true))
-                    <a href="{{ route('blog.index') }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ setting('blog_title', 'Blog') }}</a>
+                    <a href="{{ route('blog.index') }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ $blogTitle }}</a>
                 @endif
                 <div class="my-2 border-t border-zinc-200/60 dark:border-white/10"></div>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">My account</a>
+                    <a href="{{ route('dashboard') }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ __('My account') }}</a>
                     @can('access_admin')
-                        <a href="{{ url('/admin') }}" class="rounded-xl px-3 py-2.5 text-brand hover:bg-zinc-900/5 dark:hover:bg-white/10">Admin panel</a>
+                        <a href="{{ url('/admin') }}" class="rounded-xl px-3 py-2.5 text-brand hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ __('Admin panel') }}</a>
                     @endcan
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button class="w-full rounded-xl px-3 py-2.5 text-left hover:bg-zinc-900/5 dark:hover:bg-white/10">Log out</button>
+                        <button class="w-full rounded-xl px-3 py-2.5 text-left hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ __('Log out') }}</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">Log in</a>
+                    <a href="{{ route('login') }}" class="rounded-xl px-3 py-2.5 hover:bg-zinc-900/5 dark:hover:bg-white/10">{{ __('Log in') }}</a>
                     @if (setting('registration_enabled', true))
-                        <a href="{{ route('register') }}" class="btn-primary mt-1">Sign up</a>
+                        <a href="{{ route('register') }}" class="btn-primary mt-1">{{ __('Sign up') }}</a>
                     @endif
                 @endauth
+                <div class="mt-3 flex items-center justify-between px-3 sm:hidden">
+                    <span class="text-zinc-500">{{ __('Language') }}</span>
+                    <x-site.language-switcher />
+                </div>
             </div>
         </div>
     </header>
@@ -159,7 +168,7 @@
         <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-5 py-10 sm:flex-row sm:px-8">
             <div class="text-center sm:text-left">
                 <div class="font-semibold text-zinc-900 dark:text-white">{{ $siteName }}</div>
-                <div class="mt-1 text-sm text-zinc-500">{{ setting('footer_text', '© '.date('Y')) }}</div>
+                <div class="mt-1 text-sm text-zinc-500">{{ setting_t('footer_text', '© '.date('Y')) }}</div>
             </div>
             <div class="flex items-center gap-2">
                 @foreach (setting('social_links', []) as $link)

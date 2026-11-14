@@ -17,6 +17,7 @@
                 <div class="flex flex-col gap-6">
                     {{ $slot }}
                 </div>
+                <x-site.language-switcher class="mx-auto mt-6" />
             </div>
         </div>
         @fluxScripts

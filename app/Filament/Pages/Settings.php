@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Forms\Components\MediaPicker;
 use App\Models\Setting;
+use App\Support\Locales;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\ColorPicker;
@@ -50,6 +51,33 @@ class Settings extends Page
         'blog_enabled', 'blog_title', 'blog_intro', 'meta_image', 'analytics_head',
     ];
 
+    /**
+     * Text settings that can have a version per language, stored as "{key}_{locale}"
+     * (e.g. site_tagline_en) and read with setting_t(). Empty = use the Danish text.
+     */
+    protected const TRANSLATABLE = [
+        'site_tagline' => 'Site tagline',
+        'site_description' => 'Site description',
+        'announcement' => 'Announcement',
+        'footer_text' => 'Footer text',
+        'blog_title' => 'Blog title',
+        'blog_intro' => 'Blog intro',
+    ];
+
+    /** @return array<string> */
+    protected static function keys(): array
+    {
+        $keys = self::KEYS;
+
+        foreach (array_keys(Locales::translations()) as $locale) {
+            foreach (array_keys(self::TRANSLATABLE) as $key) {
+                $keys[] = "{$key}_{$locale}";
+            }
+        }
+
+        return $keys;
+    }
+
     public ?array $data = [];
 
     public static function canAccess(): bool
@@ -60,7 +88,7 @@ class Settings extends Page
     public function mount(): void
     {
         $values = [];
-        foreach (self::KEYS as $key) {
+        foreach (static::keys() as $key) {
             // Never send secrets to the browser; a blank field keeps the stored value.
             $values[$key] = Setting::isSecret($key) ? null : Setting::get($key);
         }
@@ -135,6 +163,19 @@ class Settings extends Page
                         TextInput::make('blog_title')->placeholder('Blog'),
                         Textarea::make('blog_intro')->rows(2),
                     ]),
+
+                    ...collect(Locales::translations())->map(fn (string $name, string $locale) => Tab::make($name)
+                        ->icon(Heroicon::OutlinedLanguage)
+                        ->schema([
+                            Text::make("The website is in Danish by default. Visitors who switch to {$name} see these texts instead; leave a field empty to show the Danish text."),
+                            ...collect(self::TRANSLATABLE)->map(function (string $label, string $key) use ($locale) {
+                                $field = in_array($key, ['site_description', 'blog_intro'])
+                                    ? Textarea::make("{$key}_{$locale}")->rows(2)
+                                    : TextInput::make("{$key}_{$locale}");
+
+                                return $field->label($label)->placeholder(fn (Get $get) => $get($key));
+                            })->values()->all(),
+                        ]))->values()->all(),
 
                     Tab::make('Advanced')->icon(Heroicon::OutlinedCodeBracket)->schema([
                         Textarea::make('analytics_head')

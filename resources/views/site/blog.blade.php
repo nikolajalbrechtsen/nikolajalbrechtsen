@@ -1,15 +1,16 @@
-<x-layouts.site :title="setting('blog_title', 'Blog')">
+@php $blogTitle = setting_t('blog_title', 'Blog'); @endphp
+<x-layouts.site :title="$blogTitle">
     <section class="section">
         <div class="max-w-2xl">
-            <p class="eyebrow">{{ setting('blog_title', 'Blog') }}</p>
+            <p class="eyebrow">{{ $blogTitle }}</p>
             <h1 class="mt-2 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl dark:text-white">
-                {{ $tag ? '#'.$tag : 'Writing & notes' }}
+                {{ $tag ? '#'.$tag : __('Writing & notes') }}
             </h1>
-            @if (setting('blog_intro'))
-                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ setting('blog_intro') }}</p>
+            @if ($intro = setting_t('blog_intro'))
+                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ $intro }}</p>
             @endif
             @if ($tag)
-                <a href="{{ route('blog.index') }}" class="mt-4 inline-block text-sm font-medium text-brand">← All posts</a>
+                <a href="{{ route('blog.index') }}" class="mt-4 inline-block text-sm font-medium text-brand">← {{ __('All posts') }}</a>
             @endif
         </div>
 
@@ -17,7 +18,7 @@
             @forelse ($posts as $post)
                 <x-site.post-card :post="$post" />
             @empty
-                <p class="text-zinc-500">No posts yet.</p>
+                <p class="text-zinc-500">{{ __('No posts yet.') }}</p>
             @endforelse
         </div>
 

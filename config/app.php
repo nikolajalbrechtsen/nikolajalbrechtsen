@@ -72,15 +72,28 @@ return [
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
-    | The application locale determines the default locale that will be used
-    | by Laravel's translation / localization methods. This option can be
-    | set to any locale for which you plan to have translation strings.
+    | The website is Danish by default; visitors can switch language from
+    | the header. Content written in the admin panel falls back to Danish
+    | when no translation exists. Interface strings are written in English
+    | in the code (the keys of lang/da.json), which is why English is the
+    | fallback for interface strings.
+    |
+    | Deliberately not read from .env, so an old APP_LOCALE=en on the
+    | server can't change the site's default language.
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => 'da',
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'default_locale' => 'da',
+
+    'fallback_locale' => 'en',
+
+    /** Languages the website can be shown in: code => name (in that language). */
+    'locales' => [
+        'da' => 'Dansk',
+        'en' => 'English',
+    ],
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 

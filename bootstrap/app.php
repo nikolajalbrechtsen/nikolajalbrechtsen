@@ -4,6 +4,7 @@ use App\Http\Middleware\DetectHttpsProxy;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\RegistrationEnabled;
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackVisitor;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(NoIndex::class); // keep the site out of search engines
 
         $middleware->web(append: [
+            SetLocale::class, // Danish by default, see config/app.php → locales
             EnsureUserIsActive::class,
             TrackVisitor::class,
         ]);

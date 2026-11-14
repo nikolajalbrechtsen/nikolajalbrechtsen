@@ -37,7 +37,7 @@ class SocialiteController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return redirect()->route('login')->withErrors(['email' => 'Login with '.ucfirst($provider).' failed. Please try again.']);
+            return redirect()->route('login')->withErrors(['email' => __('Login with :provider failed. Please try again.', ['provider' => ucfirst($provider)])]);
         }
 
         // 1. Already linked → log in.
@@ -48,7 +48,7 @@ class SocialiteController extends Controller
         }
 
         if (blank($social->getEmail())) {
-            return redirect()->route('login')->withErrors(['email' => 'Your '.ucfirst($provider).' account has no public email address.']);
+            return redirect()->route('login')->withErrors(['email' => __('Your :provider account has no public email address.', ['provider' => ucfirst($provider)])]);
         }
 
         // 2. Existing user with same email (or logged in) → link the account.
@@ -56,7 +56,7 @@ class SocialiteController extends Controller
 
         // 3. Otherwise create a new user, if sign-ups are allowed.
         if (! $user && ! setting('registration_enabled', true)) {
-            return redirect()->route('login')->withErrors(['email' => 'New sign-ups are currently disabled.']);
+            return redirect()->route('login')->withErrors(['email' => __('New sign-ups are currently disabled.')]);
         }
 
         $user = DB::transaction(function () use ($user, $social, $provider) {
@@ -93,7 +93,7 @@ class SocialiteController extends Controller
     protected function login(User $user)
     {
         if (! $user->is_active) {
-            return redirect()->route('login')->withErrors(['email' => 'This account has been disabled.']);
+            return redirect()->route('login')->withErrors(['email' => __('This account has been disabled.')]);
         }
 
         Auth::login($user, remember: true);

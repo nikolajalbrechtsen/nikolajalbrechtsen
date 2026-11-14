@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,8 @@ use Illuminate\Support\Str;
 
 class Post extends Model
 {
+    use HasTranslations; // title, excerpt, content, meta_title, meta_description per language
+
     protected $fillable = [
         'author_id', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'tags',
         'visibility', 'published_at', 'meta_title', 'meta_description',
@@ -45,11 +48,11 @@ class Post extends Model
 
     public function readingTime(): int
     {
-        return max(1, (int) ceil(str_word_count(strip_tags((string) $this->content)) / 220));
+        return max(1, (int) ceil(str_word_count(strip_tags((string) $this->translate('content'))) / 220));
     }
 
     public function summary(): string
     {
-        return $this->excerpt ?: Str::limit(strip_tags((string) $this->content), 160);
+        return $this->translate('excerpt') ?: Str::limit(strip_tags((string) $this->translate('content')), 160);
     }
 }

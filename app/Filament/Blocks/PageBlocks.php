@@ -5,6 +5,7 @@ namespace App\Filament\Blocks;
 use App\Filament\Forms\Components\MediaPicker;
 use App\Filament\Forms\MediaLibrary;
 use App\Filament\Forms\MediaLibraryPlugin;
+use App\Support\Locales;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -34,9 +35,14 @@ class PageBlocks
         'briefcase' => 'Briefcase', 'camera' => 'Camera', 'wrench-screwdriver' => 'Tools',
     ];
 
-    /** @return array<Block> */
-    public static function all(): array
+    /**
+     * @param  string|null  $locale  language of the default texts (Danish unless given)
+     * @return array<Block>
+     */
+    public static function all(?string $locale = null): array
     {
+        $locale ??= Locales::default(); // the admin itself runs in English
+
         return [
             Block::make('hero')
                 ->label('Hero banner')
@@ -119,7 +125,7 @@ class PageBlocks
                 ->label('FAQ')
                 ->icon('heroicon-o-question-mark-circle')
                 ->schema([
-                    TextInput::make('heading')->default('Frequently asked questions'),
+                    TextInput::make('heading')->default(__('Frequently asked questions', [], $locale)),
                     Repeater::make('items')
                         ->schema([
                             TextInput::make('question')->required(),
@@ -145,9 +151,9 @@ class PageBlocks
                 ->label('Upcoming events')
                 ->icon('heroicon-o-calendar-days')
                 ->schema([
-                    TextInput::make('heading')->default('Upcoming events'),
+                    TextInput::make('heading')->default(__('Upcoming events', [], $locale)),
                     TextInput::make('count')->numeric()->default(5)->minValue(1)->maxValue(20),
-                    Textarea::make('empty_text')->rows(1)->default('No upcoming events right now.')
+                    Textarea::make('empty_text')->rows(1)->default(__('No upcoming events right now.', [], $locale))
                         ->helperText('Shown when there are no public events. Events come from Admin → Calendar ("Show on the website").'),
                 ]),
 
@@ -155,7 +161,7 @@ class PageBlocks
                 ->label('Latest blog posts')
                 ->icon('heroicon-o-newspaper')
                 ->schema([
-                    TextInput::make('heading')->default('Latest posts'),
+                    TextInput::make('heading')->default(__('Latest posts', [], $locale)),
                     TextInput::make('count')->numeric()->default(3)->minValue(1)->maxValue(12),
                 ]),
 
@@ -163,7 +169,7 @@ class PageBlocks
                 ->label('Contact form')
                 ->icon('heroicon-o-envelope')
                 ->schema([
-                    TextInput::make('heading')->default('Get in touch'),
+                    TextInput::make('heading')->default(__('Get in touch', [], $locale)),
                     Textarea::make('text')->rows(2),
                 ]),
 

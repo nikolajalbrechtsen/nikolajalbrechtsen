@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CodeServerAuthController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,11 @@ use Livewire\Volt\Volt;
 Route::get('/', [SiteController::class, 'home'])->name('home');
 Route::get('/blog', [SiteController::class, 'blog'])->name('blog.index');
 Route::get('/blog/{slug}', [SiteController::class, 'post'])->name('blog.show');
+
+// Language switcher (Danish is the default — see config/app.php → locales)
+Route::get('/lang/{locale}', LocaleController::class)
+    ->whereIn('locale', array_keys(config('app.locales')))
+    ->name('locale.switch');
 
 /*
 |--------------------------------------------------------------------------

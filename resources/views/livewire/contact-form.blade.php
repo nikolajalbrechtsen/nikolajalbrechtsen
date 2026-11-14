@@ -44,7 +44,7 @@ new class extends Component {
 
         $key = 'contact:'.request()->ip();
         if (RateLimiter::tooManyAttempts($key, 3)) {
-            $this->addError('message', 'Too many messages. Please try again later.');
+            $this->addError('message', __('Too many messages. Please try again later.'));
 
             return;
         }
@@ -71,22 +71,22 @@ new class extends Component {
     @if ($sent)
         <div class="py-8 text-center">
             <div class="mx-auto grid size-14 place-items-center rounded-full bg-emerald-500/10 text-2xl text-emerald-500">✓</div>
-            <h3 class="mt-4 text-xl font-semibold text-zinc-900 dark:text-white">Thanks — message sent!</h3>
-            <p class="mt-2 text-zinc-500">I’ll get back to you as soon as possible.</p>
-            <button type="button" wire:click="$set('sent', false)" class="mt-6 text-sm font-medium text-brand">Send another message</button>
+            <h3 class="mt-4 text-xl font-semibold text-zinc-900 dark:text-white">{{ __('Thanks — message sent!') }}</h3>
+            <p class="mt-2 text-zinc-500">{{ __('I’ll get back to you as soon as possible.') }}</p>
+            <button type="button" wire:click="$set('sent', false)" class="mt-6 text-sm font-medium text-brand">{{ __('Send another message') }}</button>
         </div>
     @else
         <form wire:submit="send" class="grid gap-5">
             <div class="grid gap-5 sm:grid-cols-2">
-                <flux:input wire:model="name" label="Name" required />
-                <flux:input wire:model="email" type="email" label="Email" required />
+                <flux:input wire:model="name" :label="__('Name')" required />
+                <flux:input wire:model="email" type="email" :label="__('Email')" required />
             </div>
-            <flux:input wire:model="subject" label="Subject (optional)" />
-            <flux:textarea wire:model="message" label="Message" rows="6" required />
+            <flux:input wire:model="subject" :label="__('Subject (optional)')" />
+            <flux:textarea wire:model="message" :label="__('Message')" rows="6" required />
             <div class="hidden" aria-hidden="true"><input type="text" wire:model="website" tabindex="-1" autocomplete="off"></div>
             <button type="submit" class="btn-primary w-full" wire:loading.attr="disabled">
-                <span wire:loading.remove wire:target="send">Send message</span>
-                <span wire:loading wire:target="send">Sending…</span>
+                <span wire:loading.remove wire:target="send">{{ __('Send message') }}</span>
+                <span wire:loading wire:target="send">{{ __('Sending…') }}</span>
             </button>
         </form>
     @endif

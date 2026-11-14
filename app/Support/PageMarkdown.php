@@ -27,7 +27,8 @@ class PageMarkdown
     {
         $parts = [];
 
-        foreach ($page->blocks ?? [] as $block) {
+        // In the visitor's language (e.g. /about.md?lang=en), falling back to Danish.
+        foreach ($page->translate('blocks') ?? [] as $block) {
             $md = $this->block($block['type'] ?? '', $block['data'] ?? []);
             if (filled(trim($md))) {
                 $parts[] = trim($md);

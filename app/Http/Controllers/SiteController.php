@@ -50,7 +50,7 @@ class SiteController extends Controller
     protected function renderPage(Page $page)
     {
         if ($page->isMembersOnly() && ! auth()->check()) {
-            return redirect()->guest(route('login'))->with('status', 'Please log in to see this page.');
+            return redirect()->guest(route('login'))->with('status', __('Please log in to see this page.'));
         }
 
         return view('site.page', ['page' => $page]);
@@ -77,7 +77,7 @@ class SiteController extends Controller
         $post = Post::published()->with('author')->where('slug', $slug)->firstOrFail();
 
         if ($post->isMembersOnly() && ! auth()->check()) {
-            return redirect()->guest(route('login'))->with('status', 'Please log in to read this post.');
+            return redirect()->guest(route('login'))->with('status', __('Please log in to read this post.'));
         }
 
         $related = Post::published()->whereKeyNot($post->id)->latest('published_at')->limit(3)->get();

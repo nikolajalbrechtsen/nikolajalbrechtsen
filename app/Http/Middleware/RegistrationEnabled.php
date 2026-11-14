@@ -14,7 +14,7 @@ class RegistrationEnabled
     public function handle(Request $request, Closure $next): Response
     {
         if (! setting('registration_enabled', true)) {
-            return redirect()->route('login')->with('status', 'New sign-ups are currently disabled.');
+            return redirect()->route('login')->with('status', __('New sign-ups are currently disabled.'));
         }
 
         return $next($request);

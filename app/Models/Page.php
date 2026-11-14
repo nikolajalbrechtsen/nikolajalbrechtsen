@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Page extends Model
 {
+    use HasTranslations; // title, blocks, meta_title, meta_description per language
+
     protected $fillable = [
         'title', 'slug', 'blocks', 'visibility', 'is_published', 'is_homepage',
         'show_in_nav', 'nav_order', 'meta_title', 'meta_description',

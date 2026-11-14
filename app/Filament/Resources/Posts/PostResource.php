@@ -6,6 +6,7 @@ use App\Filament\Forms\Components\MediaPicker;
 use App\Filament\Forms\MediaLibrary;
 use App\Filament\Forms\MediaLibraryPlugin;
 use App\Models\Post;
+use App\Support\Locales;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -21,6 +22,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -57,23 +61,22 @@ class PostResource extends Resource
             ->columns(3)
             ->components([
                 Group::make()->columnSpan(['lg' => 2])->schema([
-                    Section::make()->schema([
-                        TextInput::make('title')
-                            ->required()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (?string $state, Set $set, string $operation) {
-                                if ($operation === 'create') {
-                                    $set('slug', Str::slug((string) $state));
-                                }
-                            }),
-                        Textarea::make('excerpt')->rows(2)->helperText('Short summary shown on the blog overview.'),
-                        RichEditor::make('content')
-                            ->fileAttachmentsDisk('public')
-                            ->fileAttachmentsDirectory('posts')
-                            ->fileAttachmentsVisibility('public')
-                            ->plugins([MediaLibraryPlugin::make()])
-                            ->toolbarButtons(MediaLibrary::TOOLBAR)
-                            ->extraInputAttributes(['style' => 'min-height: 24rem']),
+                    Tabs::make('language')->contained(false)->tabs([
+                        Tab::make(Locales::all()[Locales::default()])->schema([
+                            Section::make()->schema([
+                                TextInput::make('title')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (?string $state, Set $set, string $operation) {
+                                        if ($operation === 'create') {
+                                            $set('slug', Str::slug((string) $state));
+                                        }
+                                    }),
+                                Textarea::make('excerpt')->rows(2)->helperText('Short summary shown on the blog overview.'),
+                                static::contentEditor('content'),
+                            ]),
+                        ]),
+                        ...collect(Locales::translations())->map(fn (string $name, string $locale) => static::translationTab($locale, $name))->values()->all(),
                     ]),
                 ]),
                 Group::make()->columnSpan(['lg' => 1])->schema([
@@ -105,6 +108,43 @@ class PostResource extends Resource
             ]);
     }
 
+    protected static function contentEditor(string $name): RichEditor
+    {
+        return RichEditor::make($name)
+            ->label('Content')
+            ->fileAttachmentsDisk('public')
+            ->fileAttachmentsDirectory('posts')
+            ->fileAttachmentsVisibility('public')
+            ->plugins([MediaLibraryPlugin::make()])
+            ->toolbarButtons(MediaLibrary::TOOLBAR)
+            ->extraInputAttributes(['style' => 'min-height: 24rem']);
+    }
+
+    /** The post in another language. Empty fields fall back to Danish on the website. */
+    protected static function translationTab(string $locale, string $name): Tab
+    {
+        $default = Locales::all()[Locales::default()];
+
+        return Tab::make($name)
+            ->badge(fn (?Post $record) => $record?->hasTranslation($locale) ? null : 'Not translated')
+            ->badgeColor('gray')
+            ->schema([
+                Section::make()
+                    ->description("Leave a field empty to show the {$default} version to visitors who chose {$name}.")
+                    ->schema([
+                        TextInput::make("translations.{$locale}.title")
+                            ->label('Title')
+                            ->placeholder(fn (Get $get) => $get('title')),
+                        Textarea::make("translations.{$locale}.excerpt")->label('Excerpt')->rows(2),
+                        static::contentEditor("translations.{$locale}.content"),
+                    ]),
+                Section::make('SEO')->collapsed()->schema([
+                    TextInput::make("translations.{$locale}.meta_title")->label('Meta title')->placeholder('Defaults to the post title'),
+                    Textarea::make("translations.{$locale}.meta_description")->label('Meta description')->rows(3),
+                ]),
+            ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -125,6 +165,8 @@ class PostResource extends Resource
                 TextColumn::make('visibility')->badge()
                     ->formatStateUsing(fn (string $state) => $state === 'members' ? 'Members' : 'Public')
                     ->color(fn (string $state) => $state === 'members' ? 'warning' : 'gray'),
+                TextColumn::make('languages')->label('Languages')->badge()->color('gray')
+                    ->state(fn (Post $record) => array_map('strtoupper', $record->availableLocales())),
                 TextColumn::make('author.name')->toggleable(),
                 TextColumn::make('published_at')->date()->sortable()->label('Date'),
             ])

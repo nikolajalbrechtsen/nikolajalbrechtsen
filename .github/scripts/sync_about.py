@@ -19,7 +19,8 @@ def main() -> int:
     readme_path = sys.argv[2] if len(sys.argv) > 2 else "README.md"
 
     req = urllib.request.Request(
-        f"{site}/about.md",
+        # The README is in English; the site falls back to Danish if the page has no English version.
+        f"{site}/about.md?lang=en",
         headers={"User-Agent": "readme-sync (GitHub Actions)", "Accept": "text/markdown"},
     )
     with urllib.request.urlopen(req, timeout=30) as resp:

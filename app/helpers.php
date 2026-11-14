@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Setting;
+use App\Support\Locales;
 use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
@@ -9,6 +10,23 @@ if (! function_exists('setting')) {
     /** Read a site setting saved in Admin → Settings. */
     function setting(string $key, mixed $default = null): mixed
     {
+        return Setting::get($key, $default);
+    }
+}
+
+if (! function_exists('setting_t')) {
+    /**
+     * A text setting in the visitor's language: "{key}_{locale}" (e.g. site_tagline_en)
+     * when it's filled in, otherwise the Danish value.
+     */
+    function setting_t(string $key, mixed $default = null): mixed
+    {
+        $locale = app()->getLocale();
+
+        if (! Locales::isDefault($locale) && filled($translated = Setting::get("{$key}_{$locale}"))) {
+            return $translated;
+        }
+
         return Setting::get($key, $default);
     }
 }
